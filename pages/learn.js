@@ -1,9 +1,12 @@
-import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { MORSE_CODE_MAP } from '../utils/morseCode';
 import { playMorseLive } from '../utils/morseAudio';
 import MorseVisual from '../components/MorseVisual';
+import Seo from '../components/Seo';
+
+const PAGE_DESCRIPTION =
+  'Learn Morse code with an interactive reference for every letter, number, and punctuation mark. Tap any character to hear its dot-dash signal.';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const NUMBERS = '0123456789'.split('');
@@ -100,9 +103,7 @@ export default function Learn() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0e14] text-amber-50 font-mono selection:bg-amber-400 selection:text-[#0a0e14]">
-      <Head>
-        <title>Learn Morse Code · MORSE</title>
-      </Head>
+      <Seo title="Learn Morse Code · MORSE" description={PAGE_DESCRIPTION} path="/learn" />
 
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.06]"
@@ -160,7 +161,15 @@ export default function Learn() {
         </Link>
       </main>
 
-      <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-1 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
+      <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-2 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="hover:text-amber-300 transition">
+            Converter
+          </Link>
+          <Link href="/privacy" className="hover:text-amber-300 transition">
+            Privacy Policy
+          </Link>
+        </div>
         <span>Morse Code Converter</span>
         <span>· - · · = SOS</span>
       </footer>

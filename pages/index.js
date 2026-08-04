@@ -1,9 +1,23 @@
-import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { textToMorse } from '../utils/morseCode';
 import { playMorseLive, renderMorseWavBlob } from '../utils/morseAudio';
 import MorseVisual from '../components/MorseVisual';
+import Seo, { SITE_URL } from '../components/Seo';
+
+const PAGE_DESCRIPTION =
+  'Convert text to Morse code instantly, hear it played back as audio, and download the signal as a WAV file. Free online Morse code translator with adjustable speed and tone.';
+
+const STRUCTURED_DATA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Morse Code Converter',
+  url: SITE_URL,
+  description: PAGE_DESCRIPTION,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+};
 
 export default function Home() {
   const [inputText, setInputText] = useState('SOS');
@@ -109,9 +123,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0e14] text-amber-50 font-mono selection:bg-amber-400 selection:text-[#0a0e14]">
-      <Head>
-        <title>MORSE · Text to Morse Code Converter</title>
-      </Head>
+      <Seo title="MORSE · Text to Morse Code Converter" description={PAGE_DESCRIPTION} path="/" />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+      />
 
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.06]"
@@ -233,9 +249,31 @@ export default function Home() {
             {isDownloading ? 'Rendering...' : '⬇ Download WAV'}
           </button>
         </div>
+
+        <div className="w-full max-w-2xl flex flex-col gap-2 text-sm text-amber-100/60 leading-relaxed border-t border-amber-400/10 pt-6">
+          <h2 className="text-xs tracking-widest text-amber-200/60 uppercase">About this tool</h2>
+          <p>
+            Morse code represents letters, numbers, and punctuation as sequences of dots and dashes, originally
+            designed for telegraph transmission. This converter turns any text into Morse code in real time, plays
+            it back as audio through your browser, and lets you download the signal as a WAV file. New to Morse
+            code? Visit the{' '}
+            <Link href="/learn" className="text-amber-300 underline hover:text-amber-200">
+              Learn page
+            </Link>{' '}
+            for a full interactive reference.
+          </p>
+        </div>
       </main>
 
-      <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-1 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
+      <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-2 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
+        <div className="flex items-center gap-4">
+          <Link href="/learn" className="hover:text-amber-300 transition">
+            Learn Morse Code
+          </Link>
+          <Link href="/privacy" className="hover:text-amber-300 transition">
+            Privacy Policy
+          </Link>
+        </div>
         <span>Morse Code Converter</span>
         <span>· - · · = SOS</span>
       </footer>
