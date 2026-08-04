@@ -12,6 +12,8 @@ export default function Seo({ title, description, path = '/' }) {
       <title>{title}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={url} />
+      <link rel="manifest" href="/manifest.json" />
+      <meta name="theme-color" content="#0a0e14" />
 
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content={SITE_NAME} />
