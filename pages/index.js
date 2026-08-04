@@ -1,6 +1,7 @@
 // Home.js 파일 (countryCodeMap과 continentMap fetch로 가져오기)
 
 import Head from 'next/head';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
@@ -101,6 +102,9 @@ export default function Home() {
           <header className="w-full px-4 py-3 flex justify-between items-center shadow-md bg-white/80 dark:bg-blue-950 sticky top-0 z-10 backdrop-blur-md">
             <h1 className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-300 tracking-tight">Traveler Map</h1>
             <div className="flex gap-2">
+              <Link href="/morse" className="px-3 py-1.5 text-sm bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-white rounded-full hover:bg-purple-200 dark:hover:bg-purple-700 transition-transform transform hover:scale-105">
+                📡 모스부호
+              </Link>
               <button onClick={() => setIsDark(!isDark)} className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-transform transform hover:scale-105">
                 {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
               </button>
