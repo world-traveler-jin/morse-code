@@ -1,35 +1,9 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { textToMorse } from '../utils/morseCode';
 import { playMorseLive, renderMorseWavBlob } from '../utils/morseAudio';
-
-function MorseVisual({ morse }) {
-  if (!morse) return null;
-  const tokens = morse.split(' ');
-
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-3">
-      {tokens.map((token, i) =>
-        token === '/' ? (
-          <span key={i} className="w-3 sm:w-5" aria-hidden="true" />
-        ) : (
-          <span key={i} className="flex items-center gap-1.5">
-            {[...token].map((symbol, j) => (
-              <span
-                key={j}
-                className={
-                  symbol === '.'
-                    ? 'inline-block h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]'
-                    : 'inline-block h-3 w-8 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]'
-                }
-              />
-            ))}
-          </span>
-        )
-      )}
-    </div>
-  );
-}
+import MorseVisual from '../components/MorseVisual';
 
 export default function Home() {
   const [inputText, setInputText] = useState('SOS');
@@ -66,7 +40,7 @@ export default function Home() {
       try {
         osc.stop();
       } catch (e) {
-        // 이미 정지된 오실레이터는 무시
+        // already stopped, ignore
       }
     });
     oscillatorsRef.current = [];
@@ -107,7 +81,7 @@ export default function Home() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch (e) {
-      // 클립보드 접근 실패 시 무시
+      // clipboard access denied, ignore
     }
   };
 
@@ -119,7 +93,7 @@ export default function Home() {
       if (!blob) return;
 
       const safeName =
-        inputText.trim().slice(0, 24).replace(/[^a-zA-Z0-9가-힣]+/g, '_').replace(/^_+|_+$/g, '') || 'morse';
+        inputText.trim().slice(0, 24).replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'morse';
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -136,7 +110,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0e14] text-amber-50 font-mono selection:bg-amber-400 selection:text-[#0a0e14]">
       <Head>
-        <title>MORSE · 모스부호 변환기</title>
+        <title>MORSE · Text to Morse Code Converter</title>
       </Head>
 
       <div
@@ -157,13 +131,23 @@ export default function Home() {
           />
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-[0.2em] text-amber-400">MORSE</h1>
-            <p className="text-[11px] sm:text-xs text-amber-200/50 tracking-wide">텍스트 · 모스부호 · 오디오</p>
+            <p className="text-[11px] sm:text-xs text-amber-200/50 tracking-wide">TEXT · MORSE CODE · AUDIO</p>
           </div>
         </div>
         <span className="text-[11px] sm:text-xs text-amber-200/40 tracking-widest uppercase">
           {isPlaying ? 'On Air' : 'Standby'}
         </span>
       </header>
+
+      <div className="relative z-10 w-full flex justify-center px-4 py-4 border-b border-amber-400/10 bg-emerald-400/[0.04]">
+        <Link
+          href="/learn"
+          className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-400 text-[#0a0e14] font-bold tracking-wide shadow-[0_0_20px_rgba(52,211,153,0.5)] hover:bg-emerald-300 hover:shadow-[0_0_28px_rgba(52,211,153,0.7)] transition-all animate-pulse hover:animate-none"
+        >
+          📖 Learn Morse Code
+          <span className="transition-transform group-hover:translate-x-1">→</span>
+        </Link>
+      </div>
 
       <main className="relative z-10 flex-grow flex flex-col items-center px-4 py-10 gap-8">
         <div className="w-full max-w-2xl flex flex-col gap-2">
@@ -175,7 +159,7 @@ export default function Home() {
             value={inputText}
             onChange={handleInputChange}
             rows={3}
-            placeholder="예: HELLO WORLD"
+            placeholder="e.g. HELLO WORLD"
             className="w-full p-4 rounded-lg bg-[#11161f] border border-amber-400/20 text-amber-50 placeholder:text-amber-100/20 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 resize-none tracking-wide"
           />
         </div>
@@ -188,14 +172,14 @@ export default function Home() {
               disabled={!morseOutput}
               className="text-[11px] tracking-wide px-2.5 py-1 rounded border border-amber-400/30 text-amber-200/80 hover:bg-amber-400/10 disabled:opacity-30 transition"
             >
-              {copied ? '복사됨 ✓' : 'Copy'}
+              {copied ? 'Copied ✓' : 'Copy'}
             </button>
           </div>
 
           <div className="rounded-lg bg-[#11161f] border border-amber-400/20 p-4 flex flex-col gap-4">
             <MorseVisual morse={morseOutput} />
             <div className="min-h-[1.5rem] font-mono text-sm sm:text-base text-amber-300/90 break-all border-t border-amber-400/10 pt-3">
-              {morseOutput || <span className="text-amber-100/20">지원하는 문자를 입력하면 신호가 표시됩니다.</span>}
+              {morseOutput || <span className="text-amber-100/20">Type a supported character to see the signal.</span>}
             </div>
           </div>
         </div>
@@ -232,21 +216,21 @@ export default function Home() {
             disabled={!morseOutput || isPlaying}
             className="px-6 py-2.5 rounded-full bg-amber-400 text-[#0a0e14] font-semibold tracking-wide hover:bg-amber-300 disabled:opacity-30 disabled:hover:bg-amber-400 transition-transform transform hover:scale-105"
           >
-            {isPlaying ? '● 송신 중' : '▶ 재생'}
+            {isPlaying ? '● Transmitting' : '▶ Play'}
           </button>
           <button
             onClick={stopPlayback}
             disabled={!isPlaying}
             className="px-6 py-2.5 rounded-full border border-amber-400/40 text-amber-200 font-medium tracking-wide hover:bg-amber-400/10 disabled:opacity-30 transition-transform transform hover:scale-105"
           >
-            ■ 정지
+            ■ Stop
           </button>
           <button
             onClick={handleDownload}
             disabled={!morseOutput || isDownloading}
             className="px-6 py-2.5 rounded-full border border-amber-400/40 text-amber-200 font-medium tracking-wide hover:bg-amber-400/10 disabled:opacity-30 transition-transform transform hover:scale-105"
           >
-            {isDownloading ? '변환 중...' : '⬇ WAV 다운로드'}
+            {isDownloading ? 'Rendering...' : '⬇ Download WAV'}
           </button>
         </div>
       </main>

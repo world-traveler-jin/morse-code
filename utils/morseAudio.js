@@ -1,6 +1,6 @@
 import { textToMorseSegments } from './morseCode';
 
-// AudioContext와 OfflineAudioContext 모두에서 동작하는 신호 스케줄러
+// Signal scheduler that works with both AudioContext and OfflineAudioContext
 export function scheduleMorse(ctx, segments, { frequency, unit, startTime }) {
   let cursor = startTime;
   const oscillators = [];
@@ -31,7 +31,7 @@ export function scheduleMorse(ctx, segments, { frequency, unit, startTime }) {
   return { oscillators, endTime: cursor };
 }
 
-// 실시간 스피커 재생 (AudioContext 사용)
+// Live speaker playback (uses AudioContext)
 export function playMorseLive(ctx, text, { wpm, frequency }) {
   const segments = textToMorseSegments(text);
   if (segments.length === 0) return null;
@@ -43,7 +43,7 @@ export function playMorseLive(ctx, text, { wpm, frequency }) {
   return { oscillators, durationMs: (endTime - ctx.currentTime) * 1000 };
 }
 
-// AudioBuffer -> WAV(PCM16) ArrayBuffer 인코딩
+// Encodes an AudioBuffer into a WAV (PCM16) ArrayBuffer
 function audioBufferToWav(buffer) {
   const numChannels = buffer.numberOfChannels;
   const sampleRate = buffer.sampleRate;
@@ -93,7 +93,7 @@ function audioBufferToWav(buffer) {
   return arrayBuffer;
 }
 
-// 모스부호 신호를 WAV 파일(Blob)로 렌더링 (다운로드용)
+// Renders the Morse signal to a downloadable WAV file (Blob)
 export async function renderMorseWavBlob(text, { wpm, frequency }) {
   const segments = textToMorseSegments(text);
   if (segments.length === 0) return null;
