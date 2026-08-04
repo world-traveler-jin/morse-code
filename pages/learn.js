@@ -8,6 +8,49 @@ import Seo from '../components/Seo';
 const PAGE_DESCRIPTION =
   'Learn Morse code with an interactive reference for every letter, number, and punctuation mark. Tap any character to hear its dot-dash signal.';
 
+const FAQ = [
+  {
+    question: 'What is Morse code?',
+    answer:
+      'Morse code encodes text as sequences of two signal durations — short "dots" and long "dashes" — one sequence per letter, number, and punctuation mark. It was developed in the 1830s–40s for the electrical telegraph.',
+  },
+  {
+    question: 'Who invented Morse code?',
+    answer:
+      'It\'s named after Samuel Morse, who developed it with Alfred Vail in the 1830s for use with the electric telegraph.',
+  },
+  {
+    question: 'What does SOS mean in Morse code?',
+    answer:
+      'SOS is three dots, three dashes, three dots (··· −−− ···). It doesn\'t stand for specific words — it was chosen as an international distress signal because the pattern is simple and hard to misread.',
+  },
+  {
+    question: 'Is Morse code still used today?',
+    answer:
+      'Yes. Amateur (ham) radio operators still use it, aircraft navigation beacons identify themselves with it, and some maritime and emergency services keep it as a backup communication method.',
+  },
+  {
+    question: 'How long does it take to learn Morse code?',
+    answer:
+      'With regular practice, most people learn the full alphabet in a few weeks and build reading speed over a few months. Starting with the most common letters — E, T, A, O, I, N — makes it easier.',
+  },
+  {
+    question: "What's the fastest way to learn Morse code?",
+    answer:
+      'Listen to it instead of just reading the dots and dashes — your ears pick up the rhythm faster than your eyes learn the pattern. Tap through each character on this page to hear it repeatedly.',
+  },
+];
+
+const FAQ_STRUCTURED_DATA = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+};
+
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const NUMBERS = '0123456789'.split('');
 const PUNCTUATION = ['.', ',', '?', "'", '!', '/', '(', ')', '&', ':', ';', '=', '+', '-', '_', '"', '$', '@'];
@@ -104,6 +147,10 @@ export default function Learn() {
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0e14] text-amber-50 font-mono selection:bg-amber-400 selection:text-[#0a0e14]">
       <Seo title="Learn Morse Code · MORSE" description={PAGE_DESCRIPTION} path="/learn" />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_STRUCTURED_DATA) }}
+      />
 
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.06]"
@@ -151,6 +198,24 @@ export default function Learn() {
           <CodeSection title="Letters" chars={LETTERS} onPlay={handlePlay} activeChar={activeChar} />
           <CodeSection title="Numbers" chars={NUMBERS} onPlay={handlePlay} activeChar={activeChar} />
           <CodeSection title="Punctuation" chars={PUNCTUATION} onPlay={handlePlay} activeChar={activeChar} />
+        </div>
+
+        <div className="w-full max-w-3xl flex flex-col gap-4">
+          <h2 className="text-xs tracking-widest text-amber-200/60 uppercase">Frequently asked questions</h2>
+          <div className="flex flex-col gap-2">
+            {FAQ.map((item) => (
+              <details
+                key={item.question}
+                className="group rounded-lg bg-[#11161f] border border-amber-400/15 px-4 py-3 open:border-amber-400/40"
+              >
+                <summary className="cursor-pointer text-sm font-medium text-amber-200 list-none flex items-center justify-between gap-3">
+                  {item.question}
+                  <span className="text-amber-400 transition-transform group-open:rotate-45">+</span>
+                </summary>
+                <p className="mt-2 text-sm text-amber-100/70 leading-relaxed">{item.answer}</p>
+              </details>
+            ))}
+          </div>
         </div>
 
         <Link
