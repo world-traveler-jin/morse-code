@@ -1,4 +1,4 @@
-// 국제 모스부호(International Morse Code) 매핑 테이블
+// International Morse Code lookup table
 export const MORSE_CODE_MAP = {
   A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.',
   G: '--.', H: '....', I: '..', J: '.---', K: '-.-', L: '.-..',
@@ -14,7 +14,7 @@ export const MORSE_CODE_MAP = {
   '$': '...-..-', '@': '.--.-.',
 };
 
-// 화면에 보여줄 모스부호 문자열로 변환 ("단어 / 단어" 형태, 지원하지 않는 문자는 무시)
+// Converts text to a displayable Morse string ("word / word" form, unsupported characters are skipped)
 export function textToMorse(text) {
   const words = text.trim().toUpperCase().split(/\s+/).filter(Boolean);
   return words
@@ -28,8 +28,8 @@ export function textToMorse(text) {
     .join(' / ');
 }
 
-// 오디오 재생을 위한 신호 구간(segment) 목록 생성
-// tone: true면 소리(점/선), false면 무음(간격). units는 1 unit 길이의 배수.
+// Builds a list of audio segments for playback.
+// tone: true means sound (dot/dash), false means silence (gap). units is a multiple of one time unit.
 export function textToMorseSegments(text) {
   const words = text.trim().toUpperCase().split(/\s+/).filter(Boolean);
   const segments = [];
@@ -42,16 +42,16 @@ export function textToMorseSegments(text) {
       [...code].forEach((symbol, symbolIndex) => {
         segments.push({ tone: true, units: symbol === '.' ? 1 : 3 });
         if (symbolIndex < code.length - 1) {
-          segments.push({ tone: false, units: 1 }); // 부호 내 점/선 간격
+          segments.push({ tone: false, units: 1 }); // gap between symbols within a letter
         }
       });
       if (letterIndex < letters.length - 1) {
-        segments.push({ tone: false, units: 3 }); // 글자 간 간격
+        segments.push({ tone: false, units: 3 }); // gap between letters
       }
     });
 
     if (wordIndex < words.length - 1 && letters.length > 0) {
-      segments.push({ tone: false, units: 7 }); // 단어 간 간격
+      segments.push({ tone: false, units: 7 }); // gap between words
     }
   });
 
