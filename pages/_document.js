@@ -3,7 +3,9 @@ import { Html, Head, Main, NextScript } from "next/document";
 export default function Document() {
   return (
     <Html lang="en">
-      <Head />
+      <Head>
+        <meta name="google-site-verification" content="OsdOU7OzUuRCcIb7iGgmVeJRk20FZSAjBOFZA2FoGLg" />
+      </Head>
       <body>
         <Main />
         <NextScript />
