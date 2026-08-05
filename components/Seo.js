@@ -1,6 +1,6 @@
 import Head from 'next/head';
 
-export const SITE_URL = 'https://morse-code.mansj98.workers.dev';
+export const SITE_URL = 'https://morse-code.busanito.workers.dev';
 export const SITE_NAME = 'Morse Code Converter';
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 
