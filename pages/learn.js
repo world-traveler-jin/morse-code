@@ -4,6 +4,7 @@ import { LANGUAGES, getMorseMap, textToMorse } from '../utils/morseCode';
 import { playMorseLive } from '../utils/morseAudio';
 import MorseVisual from '../components/MorseVisual';
 import Seo from '../components/Seo';
+import FeatureNav from '../components/FeatureNav';
 
 const PAGE_DESCRIPTION =
   'Learn Morse code with an interactive reference for every letter, number, and punctuation mark in International, Russian, Greek, Hebrew, Japanese, and Korean Morse code. Tap any character to hear its signal.';
@@ -196,13 +197,9 @@ export default function Learn() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-[0.2em] text-amber-400">MORSE</h1>
           <p className="text-[11px] sm:text-xs text-amber-200/50 tracking-wide">LEARN THE CODE</p>
         </div>
-        <Link
-          href="/"
-          className="px-4 py-2 rounded-full border border-amber-400/40 text-amber-200 text-sm font-medium tracking-wide hover:bg-amber-400/10 transition-transform transform hover:scale-105"
-        >
-          ← Back to Converter
-        </Link>
       </header>
+
+      <FeatureNav current="/learn" />
 
       <main className="relative z-10 flex-grow flex flex-col items-center px-4 py-10 gap-10">
         <div className="w-full max-w-3xl flex flex-col gap-3 bg-[#11161f] border border-amber-400/20 rounded-lg p-5">
@@ -283,15 +280,6 @@ export default function Learn() {
 
       <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-2 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
         <div className="flex items-center gap-4">
-          <Link href="/" className="hover:text-amber-300 transition">
-            Converter
-          </Link>
-          <Link href="/practice" className="hover:text-amber-300 transition">
-            Practice Key
-          </Link>
-          <Link href="/chat" className="hover:text-amber-300 transition">
-            Live Chat
-          </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
           </Link>
