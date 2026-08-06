@@ -32,8 +32,8 @@ export function scheduleMorse(ctx, segments, { frequency, unit, startTime }) {
 }
 
 // Live speaker playback (uses AudioContext)
-export function playMorseLive(ctx, text, { wpm, frequency }) {
-  const segments = textToMorseSegments(text);
+export function playMorseLive(ctx, text, { wpm, frequency, language }) {
+  const segments = textToMorseSegments(text, language);
   if (segments.length === 0) return null;
 
   const unit = 1.2 / wpm;
@@ -94,8 +94,8 @@ function audioBufferToWav(buffer) {
 }
 
 // Renders the Morse signal to a downloadable WAV file (Blob)
-export async function renderMorseWavBlob(text, { wpm, frequency }) {
-  const segments = textToMorseSegments(text);
+export async function renderMorseWavBlob(text, { wpm, frequency, language }) {
+  const segments = textToMorseSegments(text, language);
   if (segments.length === 0) return null;
 
   const unit = 1.2 / wpm;

@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { textToMorse } from '../utils/morseCode';
+import { textToMorse, LANGUAGES } from '../utils/morseCode';
 import { playMorseLive, renderMorseWavBlob } from '../utils/morseAudio';
 import MorseVisual from '../components/MorseVisual';
 import Seo, { SITE_URL } from '../components/Seo';
 
 const PAGE_DESCRIPTION =
-  'Convert text to Morse code instantly, hear it played back as audio, and download the signal as a WAV file. Free online Morse code translator with adjustable speed and tone.';
+  'Convert text to Morse code instantly, hear it played back as audio, and download the signal as a WAV file. Free online Morse code translator supporting International, Russian, Greek, Hebrew, Japanese, and Korean.';
 
 const STRUCTURED_DATA = {
   '@context': 'https://schema.org',
@@ -20,6 +20,7 @@ const STRUCTURED_DATA = {
 };
 
 export default function Home() {
+  const [language, setLanguage] = useState('international');
   const [inputText, setInputText] = useState('SOS');
   const [wpm, setWpm] = useState(20);
   const [frequency, setFrequency] = useState(600);
@@ -31,7 +32,7 @@ export default function Home() {
   const oscillatorsRef = useRef([]);
   const stopTimeoutRef = useRef(null);
 
-  const morseOutput = textToMorse(inputText);
+  const morseOutput = textToMorse(inputText, language);
 
   useEffect(() => {
     return () => {
@@ -72,7 +73,7 @@ export default function Home() {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') ctx.resume();
 
-    const result = playMorseLive(ctx, inputText, { wpm, frequency });
+    const result = playMorseLive(ctx, inputText, { wpm, frequency, language });
     if (!result) return;
 
     oscillatorsRef.current = result.oscillators;
@@ -85,6 +86,13 @@ export default function Home() {
 
   const handleInputChange = (e) => {
     setInputText(e.target.value);
+    if (isPlaying) stopPlayback();
+  };
+
+  const handleLanguageChange = (e) => {
+    const nextLanguage = e.target.value;
+    setLanguage(nextLanguage);
+    setInputText(LANGUAGES[nextLanguage].sample);
     if (isPlaying) stopPlayback();
   };
 
@@ -103,7 +111,7 @@ export default function Home() {
     if (!morseOutput || isDownloading) return;
     setIsDownloading(true);
     try {
-      const blob = await renderMorseWavBlob(inputText, { wpm, frequency });
+      const blob = await renderMorseWavBlob(inputText, { wpm, frequency, language });
       if (!blob) return;
 
       const safeName =
@@ -167,6 +175,24 @@ export default function Home() {
 
       <main className="relative z-10 flex-grow flex flex-col items-center px-4 py-10 gap-8">
         <div className="w-full max-w-2xl flex flex-col gap-2">
+          <label htmlFor="morse-language" className="text-xs tracking-widest text-amber-200/60 uppercase">
+            Language
+          </label>
+          <select
+            id="morse-language"
+            value={language}
+            onChange={handleLanguageChange}
+            className="w-full p-3 rounded-lg bg-[#11161f] border border-amber-400/20 text-amber-50 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 tracking-wide"
+          >
+            {Object.values(LANGUAGES).map((lang) => (
+              <option key={lang.id} value={lang.id}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="w-full max-w-2xl flex flex-col gap-2">
           <label htmlFor="morse-input" className="text-xs tracking-widest text-amber-200/60 uppercase">
             Message
           </label>
@@ -175,7 +201,7 @@ export default function Home() {
             value={inputText}
             onChange={handleInputChange}
             rows={3}
-            placeholder="e.g. HELLO WORLD"
+            placeholder={`e.g. ${LANGUAGES[language].sample}`}
             className="w-full p-4 rounded-lg bg-[#11161f] border border-amber-400/20 text-amber-50 placeholder:text-amber-100/20 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 resize-none tracking-wide"
           />
         </div>
@@ -255,8 +281,9 @@ export default function Home() {
           <p>
             Morse code represents letters, numbers, and punctuation as sequences of dots and dashes, originally
             designed for telegraph transmission. This converter turns any text into Morse code in real time, plays
-            it back as audio through your browser, and lets you download the signal as a WAV file. New to Morse
-            code? Visit the{' '}
+            it back as audio through your browser, and lets you download the signal as a WAV file. Besides
+            International (Latin) Morse code, it also supports Russian, Greek, Hebrew, Japanese Wabun code, and
+            Korean SKATS — pick a language above to switch. New to Morse code? Visit the{' '}
             <Link href="/learn" className="text-amber-300 underline hover:text-amber-200">
               Learn page
             </Link>{' '}
