@@ -289,6 +289,9 @@ export default function Learn() {
           <Link href="/practice" className="hover:text-amber-300 transition">
             Practice Key
           </Link>
+          <Link href="/chat" className="hover:text-amber-300 transition">
+            Live Chat
+          </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
           </Link>

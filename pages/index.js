@@ -287,7 +287,15 @@ export default function Home() {
             <Link href="/learn" className="text-amber-300 underline hover:text-amber-200">
               Learn page
             </Link>{' '}
-            for a full interactive reference.
+            for a full interactive reference, try the{' '}
+            <Link href="/practice" className="text-amber-300 underline hover:text-amber-200">
+              Practice Key
+            </Link>{' '}
+            to send Morse code yourself, or open{' '}
+            <Link href="/chat" className="text-amber-300 underline hover:text-amber-200">
+              Live Chat
+            </Link>{' '}
+            to talk to someone else entirely in Morse code.
           </p>
         </div>
       </main>
@@ -299,6 +307,9 @@ export default function Home() {
           </Link>
           <Link href="/practice" className="hover:text-amber-300 transition">
             Practice Key
+          </Link>
+          <Link href="/chat" className="hover:text-amber-300 transition">
+            Live Chat
           </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
