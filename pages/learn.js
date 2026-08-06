@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { MORSE_CODE_MAP } from '../utils/morseCode';
+import { LANGUAGES, getMorseMap, textToMorse } from '../utils/morseCode';
 import { playMorseLive } from '../utils/morseAudio';
 import MorseVisual from '../components/MorseVisual';
 import Seo from '../components/Seo';
 
 const PAGE_DESCRIPTION =
-  'Learn Morse code with an interactive reference for every letter, number, and punctuation mark. Tap any character to hear its dot-dash signal.';
+  'Learn Morse code with an interactive reference for every letter, number, and punctuation mark in International, Russian, Greek, Hebrew, Japanese, and Korean Morse code. Tap any character to hear its signal.';
 
 const FAQ = [
   {
@@ -30,6 +30,11 @@ const FAQ = [
       'Yes. Amateur (ham) radio operators still use it, aircraft navigation beacons identify themselves with it, and some maritime and emergency services keep it as a backup communication method.',
   },
   {
+    question: 'Does Morse code work for languages other than English?',
+    answer:
+      'Yes. International Morse code covers the Latin alphabet, but Russian, Greek, Hebrew, Japanese (Wabun code), and Korean (SKATS) each have their own separate, standardized Morse code system for their own script — pick a language above to see its reference.',
+  },
+  {
     question: 'How long does it take to learn Morse code?',
     answer:
       'With regular practice, most people learn the full alphabet in a few weeks and build reading speed over a few months. Starting with the most common letters — E, T, A, O, I, N — makes it easier.',
@@ -51,9 +56,23 @@ const FAQ_STRUCTURED_DATA = {
   })),
 };
 
-const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const LATIN_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const NUMBERS = '0123456789'.split('');
 const PUNCTUATION = ['.', ',', '?', "'", '!', '/', '(', ')', '&', ':', ';', '=', '+', '-', '_', '"', '$', '@'];
+
+function getSections(languageId) {
+  if (languageId === 'international') {
+    return [
+      { title: 'Letters', chars: LATIN_LETTERS },
+      { title: 'Numbers', chars: NUMBERS },
+      { title: 'Punctuation', chars: PUNCTUATION },
+    ];
+  }
+  return [
+    { title: 'Characters', chars: Object.keys(LANGUAGES[languageId].letters) },
+    { title: 'Numbers', chars: NUMBERS },
+  ];
+}
 
 function CodeRow({ char, code, onPlay, activeChar }) {
   const isActive = activeChar === char;
@@ -67,7 +86,7 @@ function CodeRow({ char, code, onPlay, activeChar }) {
       }`}
     >
       <span className="flex items-center gap-3 min-w-0">
-        <span className="w-6 shrink-0 text-lg font-bold text-amber-300">{char}</span>
+        <span className="w-8 shrink-0 text-lg font-bold text-amber-300">{char}</span>
         <MorseVisual morse={code} size="sm" />
       </span>
       <span className="shrink-0 text-[11px] text-amber-200/40 tracking-wide">{code}</span>
@@ -75,13 +94,13 @@ function CodeRow({ char, code, onPlay, activeChar }) {
   );
 }
 
-function CodeSection({ title, chars, onPlay, activeChar }) {
+function CodeSection({ title, chars, codeMap, onPlay, activeChar }) {
   return (
     <div className="w-full flex flex-col gap-3">
       <h2 className="text-xs tracking-widest text-amber-200/60 uppercase">{title}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {chars.map((char) => (
-          <CodeRow key={char} char={char} code={MORSE_CODE_MAP[char]} onPlay={onPlay} activeChar={activeChar} />
+          <CodeRow key={char} char={char} code={codeMap[char]} onPlay={onPlay} activeChar={activeChar} />
         ))}
       </div>
     </div>
@@ -89,11 +108,17 @@ function CodeSection({ title, chars, onPlay, activeChar }) {
 }
 
 export default function Learn() {
+  const [language, setLanguage] = useState('international');
   const [activeChar, setActiveChar] = useState(null);
 
   const audioCtxRef = useRef(null);
   const oscillatorsRef = useRef([]);
   const stopTimeoutRef = useRef(null);
+
+  const codeMap = getMorseMap(language);
+  const sections = getSections(language);
+  const sample = LANGUAGES[language].sample;
+  const sampleMorse = textToMorse(sample, language);
 
   useEffect(() => {
     return () => {
@@ -127,13 +152,18 @@ export default function Learn() {
     setActiveChar(null);
   };
 
+  const handleLanguageChange = (e) => {
+    stopAll();
+    setLanguage(e.target.value);
+  };
+
   const handlePlay = (char) => {
     stopAll();
 
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') ctx.resume();
 
-    const result = playMorseLive(ctx, char, { wpm: 16, frequency: 600 });
+    const result = playMorseLive(ctx, char, { wpm: 16, frequency: 600, language });
     if (!result) return;
 
     oscillatorsRef.current = result.oscillators;
@@ -189,15 +219,40 @@ export default function Learn() {
             <li>The most common letters (E, T) get the shortest codes — a single dot or dash</li>
           </ul>
           <div className="flex items-center gap-3 pt-2 border-t border-amber-400/10">
-            <span className="text-xs text-amber-200/50 tracking-wide">e.g. SOS</span>
-            <MorseVisual morse="... --- ..." size="sm" />
+            <span className="text-xs text-amber-200/50 tracking-wide">e.g. {sample}</span>
+            <MorseVisual morse={sampleMorse} size="sm" />
           </div>
         </div>
 
+        <div className="w-full max-w-3xl flex flex-col gap-2">
+          <label htmlFor="learn-language" className="text-xs tracking-widest text-amber-200/60 uppercase">
+            Language
+          </label>
+          <select
+            id="learn-language"
+            value={language}
+            onChange={handleLanguageChange}
+            className="w-full p-3 rounded-lg bg-[#11161f] border border-amber-400/20 text-amber-50 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 tracking-wide"
+          >
+            {Object.values(LANGUAGES).map((lang) => (
+              <option key={lang.id} value={lang.id}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="w-full max-w-3xl flex flex-col gap-10">
-          <CodeSection title="Letters" chars={LETTERS} onPlay={handlePlay} activeChar={activeChar} />
-          <CodeSection title="Numbers" chars={NUMBERS} onPlay={handlePlay} activeChar={activeChar} />
-          <CodeSection title="Punctuation" chars={PUNCTUATION} onPlay={handlePlay} activeChar={activeChar} />
+          {sections.map((section) => (
+            <CodeSection
+              key={section.title}
+              title={section.title}
+              chars={section.chars}
+              codeMap={codeMap}
+              onPlay={handlePlay}
+              activeChar={activeChar}
+            />
+          ))}
         </div>
 
         <div className="w-full max-w-3xl flex flex-col gap-4">
