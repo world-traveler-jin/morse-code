@@ -276,6 +276,9 @@ export default function Practice() {
           <Link href="/learn" className="hover:text-amber-300 transition">
             Learn Morse Code
           </Link>
+          <Link href="/chat" className="hover:text-amber-300 transition">
+            Live Chat
+          </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
           </Link>

@@ -2,7 +2,17 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "morse-code",
   "compatibility_date": "2024-09-23",
+  "main": "worker/index.js",
   "assets": {
-    "directory": "./out"
-  }
+    "directory": "./out",
+    "binding": "ASSETS"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "MORSE_ROOM", "class_name": "MorseRoom" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["MorseRoom"] }
+  ]
 }
