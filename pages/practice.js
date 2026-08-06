@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { LANGUAGES, getReverseMorseMap } from '../utils/morseCode';
-import { startTone, stopTone } from '../utils/morseAudio';
+import { useEffect, useState } from 'react';
+import { LANGUAGES } from '../utils/morseCode';
+import { useMorseKey } from '../hooks/useMorseKey';
 import MorseVisual from '../components/MorseVisual';
 import Seo from '../components/Seo';
+import FeatureNav from '../components/FeatureNav';
 
 const PAGE_DESCRIPTION =
   'Practice sending Morse code yourself with a virtual telegraph key. Tap or hold the spacebar to send dots and dashes, decoded live into text.';
@@ -12,107 +13,24 @@ export default function Practice() {
   const [language, setLanguage] = useState('international');
   const [wpm, setWpm] = useState(15);
   const [frequency, setFrequency] = useState(600);
-  const [isPressed, setIsPressed] = useState(false);
-  const [currentSymbols, setCurrentSymbols] = useState('');
-  const [decodedText, setDecodedText] = useState('');
 
-  const audioCtxRef = useRef(null);
-  const toneRef = useRef(null);
-  const pressStartRef = useRef(0);
-  const letterTimeoutRef = useRef(null);
-  const wordTimeoutRef = useRef(null);
-  const isPressedRef = useRef(false);
-  const symbolsRef = useRef('');
-  const languageRef = useRef(language);
-  const wpmRef = useRef(wpm);
-
-  useEffect(() => {
-    languageRef.current = language;
-  }, [language]);
-
-  useEffect(() => {
-    wpmRef.current = wpm;
-  }, [wpm]);
-
-  const getAudioContext = () => {
-    if (!audioCtxRef.current) {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      audioCtxRef.current = new AudioContextClass();
-    }
-    return audioCtxRef.current;
-  };
-
-  const clearTimers = () => {
-    if (letterTimeoutRef.current) {
-      clearTimeout(letterTimeoutRef.current);
-      letterTimeoutRef.current = null;
-    }
-    if (wordTimeoutRef.current) {
-      clearTimeout(wordTimeoutRef.current);
-      wordTimeoutRef.current = null;
-    }
-  };
-
-  const finalizeLetter = useCallback(() => {
-    letterTimeoutRef.current = null;
-    const symbols = symbolsRef.current;
-    if (!symbols) return;
-
-    const reverseMap = getReverseMorseMap(languageRef.current);
-    const char = reverseMap[symbols];
-    setDecodedText((prev) => prev + (char || '�'));
-    symbolsRef.current = '';
-    setCurrentSymbols('');
-
-    const unitMs = 1200 / wpmRef.current;
-    wordTimeoutRef.current = setTimeout(() => {
-      wordTimeoutRef.current = null;
-      setDecodedText((prev) => (prev.endsWith(' ') || prev === '' ? prev : prev + ' '));
-    }, unitMs * 4); // remaining time to reach a 7-unit word gap
-  }, []);
-
-  const handlePressStart = useCallback(() => {
-    if (isPressedRef.current) return;
-    isPressedRef.current = true;
-    setIsPressed(true);
-    clearTimers();
-
-    pressStartRef.current = performance.now();
-    const ctx = getAudioContext();
-    if (ctx.state === 'suspended') ctx.resume();
-    toneRef.current = startTone(ctx, frequency);
-  }, [frequency]);
-
-  const handlePressEnd = useCallback(() => {
-    if (!isPressedRef.current) return;
-    isPressedRef.current = false;
-    setIsPressed(false);
-
-    if (toneRef.current) {
-      stopTone(toneRef.current);
-      toneRef.current = null;
-    }
-
-    const durationMs = performance.now() - pressStartRef.current;
-    const unitMs = 1200 / wpmRef.current;
-    const symbol = durationMs < unitMs * 2 ? '.' : '-';
-    symbolsRef.current += symbol;
-    setCurrentSymbols(symbolsRef.current);
-
-    letterTimeoutRef.current = setTimeout(finalizeLetter, unitMs * 3);
-  }, [finalizeLetter]);
+  const { isPressed, currentSymbols, buffer, pressStart, pressEnd, clearBuffer } = useMorseKey({
+    language,
+    wpm,
+    frequency,
+  });
 
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.code === 'Space' && !e.repeat) {
         e.preventDefault();
-        handlePressStart();
+        pressStart();
       }
     };
     const onKeyUp = (e) => {
       if (e.code === 'Space') {
         e.preventDefault();
-        handlePressEnd();
+        pressEnd();
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -120,22 +38,11 @@ export default function Practice() {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
-      clearTimers();
-      if (toneRef.current) stopTone(toneRef.current);
-      if (audioCtxRef.current) audioCtxRef.current.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handlePressStart, handlePressEnd]);
-
-  const handleClear = () => {
-    clearTimers();
-    symbolsRef.current = '';
-    setCurrentSymbols('');
-    setDecodedText('');
-  };
+  }, [pressStart, pressEnd]);
 
   const handleLanguageChange = (e) => {
-    handleClear();
+    clearBuffer();
     setLanguage(e.target.value);
   };
 
@@ -157,13 +64,9 @@ export default function Practice() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-[0.2em] text-amber-400">MORSE</h1>
           <p className="text-[11px] sm:text-xs text-amber-200/50 tracking-wide">PRACTICE KEY</p>
         </div>
-        <Link
-          href="/"
-          className="px-4 py-2 rounded-full border border-amber-400/40 text-amber-200 text-sm font-medium tracking-wide hover:bg-amber-400/10 transition-transform transform hover:scale-105"
-        >
-          ← Back to Converter
-        </Link>
       </header>
+
+      <FeatureNav current="/practice" />
 
       <main className="relative z-10 flex-grow flex flex-col items-center px-4 py-10 gap-8">
         <div className="w-full max-w-2xl flex flex-col gap-2 text-sm text-amber-100/70 leading-relaxed bg-[#11161f] border border-amber-400/20 rounded-lg p-5">
@@ -217,16 +120,16 @@ export default function Practice() {
         </div>
 
         <button
-          onMouseDown={handlePressStart}
-          onMouseUp={handlePressEnd}
-          onMouseLeave={handlePressEnd}
+          onMouseDown={pressStart}
+          onMouseUp={pressEnd}
+          onMouseLeave={pressEnd}
           onTouchStart={(e) => {
             e.preventDefault();
-            handlePressStart();
+            pressStart();
           }}
           onTouchEnd={(e) => {
             e.preventDefault();
-            handlePressEnd();
+            pressEnd();
           }}
           className={`w-full max-w-md h-32 rounded-2xl border-2 font-bold tracking-widest uppercase text-lg select-none transition-colors ${
             isPressed
@@ -241,7 +144,7 @@ export default function Practice() {
           <div className="flex justify-between items-center">
             <span className="text-xs tracking-widest text-amber-200/60 uppercase">Current letter</span>
             <button
-              onClick={handleClear}
+              onClick={clearBuffer}
               className="text-[11px] tracking-wide px-2.5 py-1 rounded border border-amber-400/30 text-amber-200/80 hover:bg-amber-400/10 transition"
             >
               Clear
@@ -259,10 +162,10 @@ export default function Practice() {
         <div className="w-full max-w-2xl flex flex-col gap-3">
           <span className="text-xs tracking-widest text-amber-200/60 uppercase">Decoded text</span>
           <div className="min-h-[4rem] rounded-lg bg-[#11161f] border border-amber-400/20 p-4 text-lg tracking-wide break-all">
-            {decodedText || <span className="text-amber-100/20 text-sm">Your decoded message will appear here.</span>}
+            {buffer || <span className="text-amber-100/20 text-sm">Your decoded message will appear here.</span>}
           </div>
           <p className="text-[11px] text-amber-200/40">
-            A <span className="text-amber-300">�</span> means the pattern didn&apos;t match any character in this
+            A <span className="text-amber-300">□</span> means the pattern didn&apos;t match any character in this
             language.
           </p>
         </div>
@@ -270,15 +173,6 @@ export default function Practice() {
 
       <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-2 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
         <div className="flex items-center gap-4">
-          <Link href="/" className="hover:text-amber-300 transition">
-            Converter
-          </Link>
-          <Link href="/learn" className="hover:text-amber-300 transition">
-            Learn Morse Code
-          </Link>
-          <Link href="/chat" className="hover:text-amber-300 transition">
-            Live Chat
-          </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
           </Link>

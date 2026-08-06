@@ -4,6 +4,7 @@ import { textToMorse, LANGUAGES } from '../utils/morseCode';
 import { playMorseLive, renderMorseWavBlob } from '../utils/morseAudio';
 import MorseVisual from '../components/MorseVisual';
 import Seo, { SITE_URL } from '../components/Seo';
+import FeatureNav from '../components/FeatureNav';
 
 const PAGE_DESCRIPTION =
   'Convert text to Morse code instantly, hear it played back as audio, and download the signal as a WAV file. Free online Morse code translator supporting International, Russian, Greek, Hebrew, Japanese, and Korean.';
@@ -163,15 +164,7 @@ export default function Home() {
         </span>
       </header>
 
-      <div className="relative z-10 w-full flex justify-center px-4 py-4 border-b border-amber-400/10 bg-emerald-400/[0.04]">
-        <Link
-          href="/learn"
-          className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-400 text-[#0a0e14] font-bold tracking-wide shadow-[0_0_20px_rgba(52,211,153,0.5)] hover:bg-emerald-300 hover:shadow-[0_0_28px_rgba(52,211,153,0.7)] transition-all animate-pulse hover:animate-none"
-        >
-          📖 Learn Morse Code
-          <span className="transition-transform group-hover:translate-x-1">→</span>
-        </Link>
-      </div>
+      <FeatureNav current="/" />
 
       <main className="relative z-10 flex-grow flex flex-col items-center px-4 py-10 gap-8">
         <div className="w-full max-w-2xl flex flex-col gap-2">
@@ -302,15 +295,6 @@ export default function Home() {
 
       <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-2 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
         <div className="flex items-center gap-4">
-          <Link href="/learn" className="hover:text-amber-300 transition">
-            Learn Morse Code
-          </Link>
-          <Link href="/practice" className="hover:text-amber-300 transition">
-            Practice Key
-          </Link>
-          <Link href="/chat" className="hover:text-amber-300 transition">
-            Live Chat
-          </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
           </Link>

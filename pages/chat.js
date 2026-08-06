@@ -3,11 +3,13 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LANGUAGES, textToMorse } from '../utils/morseCode';
 import { playMorseLive } from '../utils/morseAudio';
+import { useMorseKey } from '../hooks/useMorseKey';
 import MorseVisual from '../components/MorseVisual';
 import Seo from '../components/Seo';
+import FeatureNav from '../components/FeatureNav';
 
 const PAGE_DESCRIPTION =
-  'Chat live with another person entirely in Morse code. Share a room link, type a message, and hear it played back as Morse code the moment it arrives.';
+  'Chat live with another person entirely in Morse code. Tap out a message on a virtual key, and it plays and shows as Morse code the moment it arrives.';
 
 const ROOM_CODE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789'; // no 0/1/l/i/o, avoids visual ambiguity
 
@@ -24,20 +26,53 @@ function getWebSocketUrl(roomCode) {
   return `${protocol}//${window.location.host}/ws/${roomCode}`;
 }
 
+function MessageBubble({ message, revealed, onToggleReveal }) {
+  const isMe = message.from === 'me';
+  return (
+    <div className={`flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
+      <span className="text-[10px] text-amber-200/40 uppercase tracking-wide">{isMe ? 'You' : 'Them'}</span>
+      <div
+        className={`max-w-[85%] rounded-lg px-3 py-2 flex flex-col gap-1.5 ${
+          isMe ? 'bg-amber-400/10 border border-amber-400/30' : 'bg-[#0a0e14] border border-amber-400/15'
+        }`}
+      >
+        <MorseVisual morse={textToMorse(message.text, message.language)} size="sm" />
+        {revealed ? (
+          <span className="text-sm text-amber-100/80">{message.text}</span>
+        ) : (
+          <button
+            onClick={onToggleReveal}
+            className="self-start text-[11px] tracking-wide px-2 py-0.5 rounded border border-amber-400/30 text-amber-200/70 hover:bg-amber-400/10 transition"
+          >
+            Reveal
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Chat() {
   const router = useRouter();
   const [joinCode, setJoinCode] = useState('');
   const [language, setLanguage] = useState('international');
   const [wpm, setWpm] = useState(20);
   const [frequency, setFrequency] = useState(600);
-  const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState([]);
+  const [revealedIds, setRevealedIds] = useState(() => new Set());
   const [status, setStatus] = useState('idle'); // idle | connecting | waiting | connected | closed | error
 
   const wsRef = useRef(null);
   const audioCtxRef = useRef(null);
 
   const roomCode = typeof router.query.room === 'string' ? router.query.room : null;
+  const isInRoom = status === 'connected' || status === 'waiting';
+
+  const { isPressed, currentSymbols, buffer, pressStart, pressEnd, clearBuffer, consumeBuffer } = useMorseKey({
+    language,
+    wpm,
+    frequency,
+  });
 
   const getAudioContext = () => {
     if (!audioCtxRef.current) {
@@ -47,12 +82,15 @@ export default function Chat() {
     return audioCtxRef.current;
   };
 
-  const playMessage = useCallback((text, msgLanguage) => {
-    const ctx = getAudioContext();
-    if (ctx.state === 'suspended') ctx.resume();
-    playMorseLive(ctx, text, { wpm, frequency, language: msgLanguage });
+  const playMessage = useCallback(
+    (text, msgLanguage) => {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
+      playMorseLive(ctx, text, { wpm, frequency, language: msgLanguage });
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wpm, frequency]);
+    [wpm, frequency]
+  );
 
   useEffect(() => {
     if (!router.isReady || !roomCode) return;
@@ -90,6 +128,28 @@ export default function Chat() {
   }, [router.isReady, roomCode]);
 
   useEffect(() => {
+    if (!isInRoom) return;
+    const onKeyDown = (e) => {
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        pressStart();
+      }
+    };
+    const onKeyUp = (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        pressEnd();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, [isInRoom, pressStart, pressEnd]);
+
+  useEffect(() => {
     return () => {
       if (audioCtxRef.current) audioCtxRef.current.close();
     };
@@ -106,13 +166,24 @@ export default function Chat() {
   };
 
   const handleSend = () => {
-    const text = inputText.trim();
+    const text = consumeBuffer();
     if (!text || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
 
     wsRef.current.send(JSON.stringify({ type: 'text', text, language }));
     setMessages((prev) => [...prev, { from: 'me', text, language }]);
     playMessage(text, language);
-    setInputText('');
+  };
+
+  const handleToggleReveal = (index) => {
+    setRevealedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
   };
 
   const handleCopyLink = async () => {
@@ -150,13 +221,9 @@ export default function Chat() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-[0.2em] text-amber-400">MORSE</h1>
           <p className="text-[11px] sm:text-xs text-amber-200/50 tracking-wide">LIVE CHAT</p>
         </div>
-        <Link
-          href="/"
-          className="px-4 py-2 rounded-full border border-amber-400/40 text-amber-200 text-sm font-medium tracking-wide hover:bg-amber-400/10 transition-transform transform hover:scale-105"
-        >
-          ← Back to Converter
-        </Link>
       </header>
+
+      <FeatureNav current="/chat" />
 
       <main className="relative z-10 flex-grow flex flex-col items-center px-4 py-10 gap-6">
         {!roomCode ? (
@@ -164,8 +231,9 @@ export default function Chat() {
             <div className="flex flex-col gap-3 bg-[#11161f] border border-amber-400/20 rounded-lg p-5">
               <h2 className="text-xs tracking-widest text-amber-200/60 uppercase">Start a conversation</h2>
               <p className="text-sm text-amber-100/70 leading-relaxed">
-                Create a room and share the link with someone. Whatever either of you types is played and shown as
-                Morse code the moment it arrives — nothing else.
+                Create a room and share the link with someone. You each tap out messages on a virtual key — no
+                typing letters — and every message plays and shows as Morse code the moment it arrives. The
+                translation stays hidden until you choose to reveal it.
               </p>
               <button
                 onClick={handleCreateRoom}
@@ -238,46 +306,74 @@ export default function Chat() {
               </label>
             </div>
 
-            <div className="flex flex-col gap-3 min-h-[16rem] max-h-[24rem] overflow-y-auto bg-[#11161f] border border-amber-400/20 rounded-lg p-4">
+            <div className="flex flex-col gap-3 min-h-[14rem] max-h-[20rem] overflow-y-auto bg-[#11161f] border border-amber-400/20 rounded-lg p-4">
               {messages.length === 0 ? (
                 <span className="text-amber-100/20 text-sm">Messages will appear here.</span>
               ) : (
                 messages.map((msg, i) => (
-                  <div key={i} className={`flex flex-col gap-1 ${msg.from === 'me' ? 'items-end' : 'items-start'}`}>
-                    <span className="text-[10px] text-amber-200/40 uppercase tracking-wide">
-                      {msg.from === 'me' ? 'You' : 'Them'}
-                    </span>
-                    <div
-                      className={`max-w-[85%] rounded-lg px-3 py-2 flex flex-col gap-1.5 ${
-                        msg.from === 'me' ? 'bg-amber-400/10 border border-amber-400/30' : 'bg-[#0a0e14] border border-amber-400/15'
-                      }`}
-                    >
-                      <MorseVisual morse={textToMorse(msg.text, msg.language)} size="sm" />
-                      <span className="text-sm text-amber-100/80">{msg.text}</span>
-                    </div>
-                  </div>
+                  <MessageBubble
+                    key={i}
+                    message={msg}
+                    revealed={revealedIds.has(i)}
+                    onToggleReveal={() => handleToggleReveal(i)}
+                  />
                 ))
               )}
             </div>
 
-            <div className="flex gap-2">
-              <input
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSend();
-                }}
-                placeholder="Type a message…"
-                disabled={status !== 'connected' && status !== 'waiting'}
-                className="flex-1 p-3 rounded-lg bg-[#11161f] border border-amber-400/20 text-amber-50 placeholder:text-amber-100/20 focus:outline-none focus:ring-1 focus:ring-amber-400/60 disabled:opacity-40"
-              />
+            <div className="flex flex-col gap-3 bg-[#11161f] border border-amber-400/20 rounded-lg p-4">
               <button
-                onClick={handleSend}
-                disabled={!inputText.trim() || (status !== 'connected' && status !== 'waiting')}
-                className="px-6 py-2.5 rounded-full bg-amber-400 text-[#0a0e14] font-semibold tracking-wide hover:bg-amber-300 disabled:opacity-30 transition-transform transform hover:scale-105"
+                onMouseDown={pressStart}
+                onMouseUp={pressEnd}
+                onMouseLeave={pressEnd}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  pressStart();
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  pressEnd();
+                }}
+                disabled={!isInRoom}
+                className={`w-full h-20 rounded-xl border-2 font-bold tracking-widest uppercase text-sm select-none transition-colors disabled:opacity-30 ${
+                  isPressed
+                    ? 'bg-amber-400 border-amber-300 text-[#0a0e14] shadow-[0_0_30px_rgba(251,191,36,0.6)]'
+                    : 'bg-[#0a0e14] border-amber-400/30 text-amber-300 hover:border-amber-400/60'
+                }`}
               >
-                Send
+                {isPressed ? '● Sending' : 'Press & Hold (or Space) to Tap Out a Message'}
               </button>
+
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-amber-200/50 tracking-wide shrink-0">Current:</span>
+                <div className="flex-1 min-h-[1.5rem] flex items-center">
+                  {currentSymbols ? (
+                    <MorseVisual morse={currentSymbols} size="sm" />
+                  ) : (
+                    <span className="text-amber-100/20 text-xs">—</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-h-[2.5rem] rounded-lg bg-[#0a0e14] border border-amber-400/20 px-3 py-2 text-sm tracking-wide break-all">
+                  {buffer || <span className="text-amber-100/20">Your message will build up here as you tap…</span>}
+                </div>
+                <button
+                  onClick={clearBuffer}
+                  disabled={!buffer && !currentSymbols}
+                  className="text-[11px] tracking-wide px-2.5 py-1.5 rounded border border-amber-400/30 text-amber-200/80 hover:bg-amber-400/10 disabled:opacity-30 transition"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={handleSend}
+                  disabled={!buffer.trim() || !isInRoom}
+                  className="px-5 py-1.5 rounded-full bg-amber-400 text-[#0a0e14] font-semibold text-sm tracking-wide hover:bg-amber-300 disabled:opacity-30 transition-transform transform hover:scale-105"
+                >
+                  Send
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -285,12 +381,6 @@ export default function Chat() {
 
       <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-2 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
         <div className="flex items-center gap-4">
-          <Link href="/" className="hover:text-amber-300 transition">
-            Converter
-          </Link>
-          <Link href="/practice" className="hover:text-amber-300 transition">
-            Practice Key
-          </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
           </Link>
