@@ -166,6 +166,16 @@ export function getMorseMap(languageId) {
   return { ...SHARED, ...getLanguage(languageId).letters };
 }
 
+// Inverse lookup (code -> character) for decoding, e.g. a tapped-out key.
+export function getReverseMorseMap(languageId) {
+  const map = getMorseMap(languageId);
+  const reverse = {};
+  for (const [char, code] of Object.entries(map)) {
+    reverse[code] = char;
+  }
+  return reverse;
+}
+
 // Backward-compatible alias: the full International (Latin) lookup table.
 export const MORSE_CODE_MAP = getMorseMap('international');
 

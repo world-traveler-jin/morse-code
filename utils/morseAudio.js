@@ -43,6 +43,26 @@ export function playMorseLive(ctx, text, { wpm, frequency, language }) {
   return { oscillators, durationMs: (endTime - ctx.currentTime) * 1000 };
 }
 
+// Starts an indefinite tone for a manually-held key press (practice mode).
+// Call stopTone() with the returned handle when the key is released.
+export function startTone(ctx, frequency) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = frequency;
+  gain.gain.setValueAtTime(0, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.005);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start();
+  return { osc, gain };
+}
+
+export function stopTone({ osc, gain }) {
+  const stopAt = gain.context.currentTime + 0.01;
+  gain.gain.linearRampToValueAtTime(0, stopAt);
+  osc.stop(stopAt + 0.005);
+}
+
 // Encodes an AudioBuffer into a WAV (PCM16) ArrayBuffer
 function audioBufferToWav(buffer) {
   const numChannels = buffer.numberOfChannels;
