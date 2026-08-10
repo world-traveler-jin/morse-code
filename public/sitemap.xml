@@ -11,6 +11,36 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://morse-code.busanito.workers.dev/learn/russian</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://morse-code.busanito.workers.dev/learn/greek</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://morse-code.busanito.workers.dev/learn/hebrew</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://morse-code.busanito.workers.dev/learn/japanese</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://morse-code.busanito.workers.dev/learn/korean</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://morse-code.busanito.workers.dev/history</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://morse-code.busanito.workers.dev/practice</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
