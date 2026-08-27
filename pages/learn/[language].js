@@ -98,6 +98,9 @@ export default function LearnLanguage({ language }) {
           <Link href="/history" className="hover:text-amber-300 transition">
             History
           </Link>
+          <Link href="/terms" className="hover:text-amber-300 transition">
+            Terms of Service
+          </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
           </Link>

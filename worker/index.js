@@ -1,6 +1,12 @@
 const ROOM_CODE_PATTERN = /^[a-z0-9-]{3,32}$/;
 const MAX_PARTICIPANTS = 2;
 
+// Live Chat is temporarily disabled (unmoderated real-time relay, no
+// report/block mechanism — see pages/chat.js and archive/chat.page.js.txt).
+// Flip this back to true to restore the WebSocket relay; the MorseRoom
+// Durable Object below is untouched and ready to go.
+const CHAT_ENABLED = false;
+
 // Relays messages between the (at most two) WebSocket clients connected to a
 // single chat room. Each room is its own Durable Object instance, keyed by
 // room code, so rooms never see each other's messages.
@@ -65,6 +71,9 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith('/ws/')) {
+      if (!CHAT_ENABLED) {
+        return new Response('Live Chat is currently unavailable', { status: 503 });
+      }
       const roomCode = url.pathname.slice('/ws/'.length).toLowerCase();
       if (!ROOM_CODE_PATTERN.test(roomCode)) {
         return new Response('Invalid room code', { status: 400 });

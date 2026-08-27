@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Seo from '../components/Seo';
 
-const LAST_UPDATED = 'August 5, 2026';
+const LAST_UPDATED = 'August 6, 2026';
 
 export default function Privacy() {
   return (
@@ -44,17 +44,6 @@ export default function Privacy() {
               Morse Code Converter ("this site") is a free tool for converting text to Morse code, playing it as
               audio, and downloading it as a WAV file. The converter, Learn, and Practice Key pages process
               everything locally in your browser — we don't collect, store, or transmit the text you type there.
-            </p>
-          </section>
-
-          <section className="flex flex-col gap-2">
-            <h2 className="text-amber-300 font-bold tracking-wide">Live Chat</h2>
-            <p>
-              The Live Chat page relays messages between two people in the same room in real time over a WebSocket
-              connection, so that text is transmitted through our server to reach the other person. Messages are
-              relayed only — they are not logged, stored, or readable by us, and are not saved anywhere once both
-              people disconnect. Room codes are not tied to any account or identity; anyone with the room link can
-              join, so avoid sharing sensitive information there.
             </p>
           </section>
 
@@ -123,6 +112,9 @@ export default function Privacy() {
           </Link>
           <Link href="/learn" className="hover:text-amber-300 transition">
             Learn Morse Code
+          </Link>
+          <Link href="/terms" className="hover:text-amber-300 transition">
+            Terms of Service
           </Link>
         </div>
         <span>Morse Code Converter</span>

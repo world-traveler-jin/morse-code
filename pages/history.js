@@ -110,6 +110,9 @@ export default function History() {
 
       <footer className="relative z-10 w-full px-4 py-5 flex flex-col items-center gap-2 border-t border-amber-400/20 text-amber-200/40 text-[11px] tracking-wide">
         <div className="flex items-center gap-4">
+          <Link href="/terms" className="hover:text-amber-300 transition">
+            Terms of Service
+          </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
           </Link>
