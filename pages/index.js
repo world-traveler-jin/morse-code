@@ -280,15 +280,11 @@ export default function Home() {
             <Link href="/learn" className="text-amber-300 underline hover:text-amber-200">
               Learn page
             </Link>{' '}
-            for a full interactive reference, try the{' '}
+            for a full interactive reference, or try the{' '}
             <Link href="/practice" className="text-amber-300 underline hover:text-amber-200">
               Practice Key
             </Link>{' '}
-            to send Morse code yourself, or open{' '}
-            <Link href="/chat" className="text-amber-300 underline hover:text-amber-200">
-              Live Chat
-            </Link>{' '}
-            to talk to someone else entirely in Morse code.
+            to send Morse code yourself.
           </p>
         </div>
       </main>
@@ -297,6 +293,9 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <Link href="/history" className="hover:text-amber-300 transition">
             History
+          </Link>
+          <Link href="/terms" className="hover:text-amber-300 transition">
+            Terms of Service
           </Link>
           <Link href="/privacy" className="hover:text-amber-300 transition">
             Privacy Policy
